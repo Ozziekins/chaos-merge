@@ -37,6 +37,13 @@ const corsOptions = {
   exposedHeaders: ["Content-Length", "Content-Type"]
 };
 
+// Request logging middleware (for debugging)
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  console.log(`Headers:`, JSON.stringify(req.headers, null, 2));
+  next();
+});
+
 // CORS must be before other middleware
 app.use(cors(corsOptions));
 
@@ -53,14 +60,17 @@ app.use("/api/upload", uploadRouter);
 app.use("/api/merge", mergeRouter);
 
 // Root health check for Railway (must be before catch-all)
-app.get("/", (_req, res) => {
+app.get("/", (req, res) => {
   try {
-    res.json({ 
+    console.log("Root route hit!");
+    const response = { 
       ok: true,
       service: "chaos-merge-api",
       version: "1.0.0",
       timestamp: new Date().toISOString()
-    });
+    };
+    console.log("Sending response:", response);
+    res.json(response);
   } catch (error) {
     console.error("Error in root route:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -128,6 +138,16 @@ const server = app.listen(env.port, "0.0.0.0", () => {
   console.log(`✅ API listening on http://0.0.0.0:${env.port}`);
   console.log(`✅ Health check: http://0.0.0.0:${env.port}/api/health`);
   console.log(`✅ Root endpoint: http://0.0.0.0:${env.port}/`);
+  console.log(`✅ Server ready to accept connections`);
+  
+  // Test that server is actually listening
+  server.getConnections((err, count) => {
+    if (err) {
+      console.error("Error getting connection count:", err);
+    } else {
+      console.log(`✅ Server can accept connections (current: ${count})`);
+    }
+  });
 }).on("error", (err: NodeJS.ErrnoException) => {
   if (err.code === "EADDRINUSE") {
     console.error(`Port ${env.port} is already in use. Please free the port or set API_PORT to a different value.`);
