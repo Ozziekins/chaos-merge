@@ -2,8 +2,10 @@
     "name": "@chaos-merge/web",
     "version": "1.0.0",
     "private": true,
+    "type": "module",
     "scripts": {
       "dev": "vite",
+      "prebuild": "npm run build --workspace @chaos-merge/shared-types",
       "build": "vite build",
       "preview": "vite preview"
     },

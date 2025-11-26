@@ -30,4 +30,6 @@ jobs:
     
     - name: Build API
       run: npm run build --workspace @chaos-merge/api
+      env:
+        NODE_ENV: production
 
