@@ -9,43 +9,32 @@ import { publicPath, uploadsPath } from "./services/pathService";
 
 // Ensure directories exist
 const ensureDirs = () => {
-  [uploadsPath(), publicPath()].forEach((dir) => {
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-  });
+  try {
+    [uploadsPath(), publicPath()].forEach((dir) => {
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+        console.log(`Created directory: ${dir}`);
+      }
+    });
+    console.log(`Uploads dir: ${uploadsPath()}`);
+    console.log(`Public dir: ${publicPath()}`);
+  } catch (error) {
+    console.error("Error creating directories:", error);
+    // Don't exit - let the server start and fail gracefully on first request
+  }
 };
 
 ensureDirs();
 
 const app = express();
 
-// CORS configuration
+// CORS configuration - allow all origins for now (can restrict later)
 const corsOptions = {
-  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    // List of allowed origins
-    const allowedOrigins = [
-      "https://chaos-merge.vercel.app",
-      "http://localhost:5173",
-      "http://localhost:5174",
-      "http://localhost:5175"
-    ];
-    
-    // Allow all Vercel preview deployments (they have patterns like chaos-merge-*.vercel.app)
-    const isVercelPreview = origin.includes("vercel.app") && origin.includes("chaos-merge");
-    
-    if (allowedOrigins.includes(origin) || isVercelPreview) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
+  origin: true, // Allow all origins - change to specific list in production if needed
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  exposedHeaders: ["Content-Length", "Content-Type"]
 };
 
 app.use(cors(corsOptions));
