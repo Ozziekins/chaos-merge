@@ -47,11 +47,39 @@ app.use("/api/upload", uploadRouter);
 app.use("/api/merge", mergeRouter);
 
 app.get("/api/health", (_req, res) => {
-  res.json({ ok: true });
+  res.json({ 
+    ok: true,
+    uploadsDir: uploadsPath(),
+    publicDir: publicPath(),
+    port: env.port,
+    cwd: process.cwd()
+  });
 });
 
+// Catch-all for undefined routes
+app.use((req, res) => {
+  res.status(404).json({ error: "Route not found" });
+});
+
+// Error handling middleware (must be last, with 4 parameters)
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error("Unhandled error:", err);
+  res.status(err.status || 500).json({ 
+    error: err.message || "Internal server error",
+    ...(process.env.NODE_ENV !== "production" && { stack: err.stack })
+  });
+});
+
+// Test that directories are accessible
+console.log("Environment check:");
+console.log(`- Port: ${env.port}`);
+console.log(`- Uploads: ${uploadsPath()}`);
+console.log(`- Public: ${publicPath()}`);
+console.log(`- CWD: ${process.cwd()}`);
+
 app.listen(env.port, "0.0.0.0", () => {
-  console.log(`API listening on http://0.0.0.0:${env.port}`);
+  console.log(`✅ API listening on http://0.0.0.0:${env.port}`);
+  console.log(`✅ Health check: http://0.0.0.0:${env.port}/api/health`);
 }).on("error", (err: NodeJS.ErrnoException) => {
   if (err.code === "EADDRINUSE") {
     console.error(`Port ${env.port} is already in use. Please free the port or set API_PORT to a different value.`);

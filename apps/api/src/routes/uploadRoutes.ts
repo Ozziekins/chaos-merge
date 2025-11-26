@@ -2,11 +2,22 @@ import { Router } from "express";
 import multer from "multer";
 import path from "path";
 import crypto from "crypto";
+import fs from "fs";
 import type { ServerClipMeta } from "@chaos-merge/shared-types";
 import { uploadsPath } from "../services/pathService";
 
 const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, uploadsPath()),
+  destination: (_req, _file, cb) => {
+    try {
+      const dest = uploadsPath();
+      if (!fs.existsSync(dest)) {
+        fs.mkdirSync(dest, { recursive: true });
+      }
+      cb(null, dest);
+    } catch (error: any) {
+      cb(error, "");
+    }
+  },
   filename: (_req, file, cb) => {
     const id = crypto.randomUUID();
     const ext = path.extname(file.originalname);
