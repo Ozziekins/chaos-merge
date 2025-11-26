@@ -83,7 +83,7 @@ chaos-merge/
    - **Output Directory**: `apps/web/dist`
    - **Install Command**: `npm install`
 4. Add environment variable:
-   - `VITE_API_BASE`: Your API URL (e.g., `https://your-api.railway.app/api`)
+   - `VITE_API_BASE`: Your API URL (e.g., `https://chaos-mergeapi-production.up.railway.app/api`)
 
 ### Backend (Railway/Render/Fly.io)
 
@@ -117,7 +117,7 @@ NODE_ENV=production
 
 ### Web (Vercel)
 ```
-VITE_API_BASE=https://your-api-url.com/api
+VITE_API_BASE=https://chaos-mergeapi-production.up.railway.app/api
 ```
 
 ## License
