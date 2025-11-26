@@ -37,8 +37,14 @@ const corsOptions = {
   exposedHeaders: ["Content-Length", "Content-Type"]
 };
 
+// CORS must be before other middleware
 app.use(cors(corsOptions));
-app.use(express.json());
+
+// Handle preflight requests explicitly
+app.options("*", cors(corsOptions));
+
+app.use(express.json({ limit: "100mb" })); // Increase limit for video uploads
+app.use(express.urlencoded({ extended: true, limit: "100mb" }));
 
 app.use("/public", express.static(publicPath()));
 
@@ -46,23 +52,35 @@ app.use("/public", express.static(publicPath()));
 app.use("/api/upload", uploadRouter);
 app.use("/api/merge", mergeRouter);
 
-app.get("/api/health", (_req, res) => {
-  res.json({ 
-    ok: true,
-    uploadsDir: uploadsPath(),
-    publicDir: publicPath(),
-    port: env.port,
-    cwd: process.cwd()
-  });
+// Root health check for Railway (must be before catch-all)
+app.get("/", (_req, res) => {
+  try {
+    res.json({ 
+      ok: true,
+      service: "chaos-merge-api",
+      version: "1.0.0",
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error("Error in root route:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
 
-// Root health check for Railway
-app.get("/", (_req, res) => {
-  res.json({ 
-    ok: true,
-    service: "chaos-merge-api",
-    version: "1.0.0"
-  });
+app.get("/api/health", (_req, res) => {
+  try {
+    res.json({ 
+      ok: true,
+      uploadsDir: uploadsPath(),
+      publicDir: publicPath(),
+      port: env.port,
+      cwd: process.cwd(),
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error("Error in health route:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
 
 // Catch-all for undefined routes
@@ -73,10 +91,17 @@ app.use((req, res) => {
 // Error handling middleware (must be last, with 4 parameters)
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error("Unhandled error:", err);
-  res.status(err.status || 500).json({ 
-    error: err.message || "Internal server error",
-    ...(process.env.NODE_ENV !== "production" && { stack: err.stack })
-  });
+  console.error("Error stack:", err.stack);
+  console.error("Request path:", req.path);
+  console.error("Request method:", req.method);
+  
+  // Ensure response hasn't been sent
+  if (!res.headersSent) {
+    res.status(err.status || 500).json({ 
+      error: err.message || "Internal server error",
+      ...(process.env.NODE_ENV !== "production" && { stack: err.stack })
+    });
+  }
 });
 
 // Test that directories are accessible
@@ -88,9 +113,21 @@ console.log(`- CWD: ${process.cwd()}`);
 console.log(`- NODE_ENV: ${process.env.NODE_ENV}`);
 console.log(`- PORT env: ${process.env.PORT}`);
 
-app.listen(env.port, "0.0.0.0", () => {
+// Handle uncaught exceptions
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught Exception:", error);
+  console.error("Stack:", error.stack);
+});
+
+// Handle unhandled promise rejections
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+});
+
+const server = app.listen(env.port, "0.0.0.0", () => {
   console.log(`✅ API listening on http://0.0.0.0:${env.port}`);
   console.log(`✅ Health check: http://0.0.0.0:${env.port}/api/health`);
+  console.log(`✅ Root endpoint: http://0.0.0.0:${env.port}/`);
 }).on("error", (err: NodeJS.ErrnoException) => {
   if (err.code === "EADDRINUSE") {
     console.error(`Port ${env.port} is already in use. Please free the port or set API_PORT to a different value.`);
@@ -99,4 +136,13 @@ app.listen(env.port, "0.0.0.0", () => {
     console.error("Server error:", err);
     process.exit(1);
   }
+});
+
+// Graceful shutdown
+process.on("SIGTERM", () => {
+  console.log("SIGTERM received, shutting down gracefully");
+  server.close(() => {
+    console.log("Server closed");
+    process.exit(0);
+  });
 });
