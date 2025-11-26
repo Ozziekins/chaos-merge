@@ -56,6 +56,15 @@ app.get("/api/health", (_req, res) => {
   });
 });
 
+// Root health check for Railway
+app.get("/", (_req, res) => {
+  res.json({ 
+    ok: true,
+    service: "chaos-merge-api",
+    version: "1.0.0"
+  });
+});
+
 // Catch-all for undefined routes
 app.use((req, res) => {
   res.status(404).json({ error: "Route not found" });
@@ -76,6 +85,8 @@ console.log(`- Port: ${env.port}`);
 console.log(`- Uploads: ${uploadsPath()}`);
 console.log(`- Public: ${publicPath()}`);
 console.log(`- CWD: ${process.cwd()}`);
+console.log(`- NODE_ENV: ${process.env.NODE_ENV}`);
+console.log(`- PORT env: ${process.env.PORT}`);
 
 app.listen(env.port, "0.0.0.0", () => {
   console.log(`✅ API listening on http://0.0.0.0:${env.port}`);

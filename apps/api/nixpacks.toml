@@ -1,0 +1,13 @@
+[phases.setup]
+nixPkgs = ["nodejs_20"]
+
+[phases.install]
+cmds = [
+  "cd ../.. && npm install",
+  "cd ../.. && npm run build --workspace @chaos-merge/shared-types",
+  "npm run build"
+]
+
+[start]
+cmd = "npm start"
+
