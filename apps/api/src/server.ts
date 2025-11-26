@@ -37,10 +37,14 @@ const corsOptions = {
   exposedHeaders: ["Content-Length", "Content-Type"]
 };
 
-// Request logging middleware (for debugging)
+// Request logging middleware (for debugging) - must be first
 app.use((req, res, next) => {
+  console.log(`\n=== INCOMING REQUEST ===`);
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  console.log(`URL: ${req.url}`);
+  console.log(`IP: ${req.ip}`);
   console.log(`Headers:`, JSON.stringify(req.headers, null, 2));
+  console.log(`=== END REQUEST LOG ===\n`);
   next();
 });
 
@@ -60,17 +64,24 @@ app.use("/api/upload", uploadRouter);
 app.use("/api/merge", mergeRouter);
 
 // Root health check for Railway (must be before catch-all)
+// Railway uses this for health checks
 app.get("/", (req, res) => {
+  console.log("=== ROOT ROUTE HIT ===");
+  console.log("Request method:", req.method);
+  console.log("Request path:", req.path);
+  console.log("Request headers:", req.headers);
+  
   try {
-    console.log("Root route hit!");
     const response = { 
       ok: true,
       service: "chaos-merge-api",
       version: "1.0.0",
       timestamp: new Date().toISOString()
     };
-    console.log("Sending response:", response);
-    res.json(response);
+    console.log("Sending response:", JSON.stringify(response));
+    res.setHeader("Content-Type", "application/json");
+    res.status(200).json(response);
+    console.log("Response sent successfully");
   } catch (error) {
     console.error("Error in root route:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -135,10 +146,13 @@ process.on("unhandledRejection", (reason, promise) => {
 });
 
 const server = app.listen(env.port, "0.0.0.0", () => {
+  console.log(`\n✅ ========== SERVER STARTED ==========`);
   console.log(`✅ API listening on http://0.0.0.0:${env.port}`);
   console.log(`✅ Health check: http://0.0.0.0:${env.port}/api/health`);
   console.log(`✅ Root endpoint: http://0.0.0.0:${env.port}/`);
   console.log(`✅ Server ready to accept connections`);
+  console.log(`✅ Listening on all interfaces (0.0.0.0)`);
+  console.log(`✅ ======================================\n`);
   
   // Test that server is actually listening
   server.getConnections((err, count) => {
@@ -148,6 +162,12 @@ const server = app.listen(env.port, "0.0.0.0", () => {
       console.log(`✅ Server can accept connections (current: ${count})`);
     }
   });
+  
+  // Log server address info
+  const address = server.address();
+  if (address && typeof address === "object") {
+    console.log(`✅ Server bound to ${address.address}:${address.port}`);
+  }
 }).on("error", (err: NodeJS.ErrnoException) => {
   if (err.code === "EADDRINUSE") {
     console.error(`Port ${env.port} is already in use. Please free the port or set API_PORT to a different value.`);
