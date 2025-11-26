@@ -5,7 +5,7 @@
     "type": "module",
     "scripts": {
       "dev": "vite",
-      "prebuild": "npm run build --workspace @chaos-merge/shared-types",
+      "prebuild": "cd ../.. && npm run build --workspace @chaos-merge/shared-types",
       "build": "vite build",
       "preview": "vite preview"
     },
