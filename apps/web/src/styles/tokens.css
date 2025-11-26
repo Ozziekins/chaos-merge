@@ -1,0 +1,19 @@
+:root {
+  --cm-bg: #050509;
+  --cm-bg-elevated: #111119;
+  --cm-sidebar-bg: #080810;
+  --cm-border-subtle: #262637;
+  --cm-text-primary: #f7f7ff;
+  --cm-text-muted: #9b9bb5;
+  --cm-primary: #6e5dff;
+  --cm-primary-soft: rgba(110, 93, 255, 0.15);
+  --cm-danger: #ff4d6a;
+
+  --cm-radius-lg: 18px;
+  --cm-radius-pill: 999px;
+
+  --cm-shadow-soft: 0 18px 40px rgba(0, 0, 0, 0.6);
+
+  --cm-transition-fast: 120ms ease-out;
+  --cm-transition-med: 160ms ease-out;
+}

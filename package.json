@@ -1,0 +1,20 @@
+{
+    "name": "chaos-merge",
+    "private": true,
+    "version": "1.0.0",
+    "workspaces": [
+      "apps/*",
+      "packages/*"
+    ],
+    "scripts": {
+      "dev": "npm run dev:api & npm run dev:web",
+      "dev:web": "npm run dev --workspace @chaos-merge/web",
+      "dev:api": "npm run dev --workspace @chaos-merge/api",
+      "build": "npm run build --workspace @chaos-merge/web && npm run build --workspace @chaos-merge/api",
+      "start": "npm run start --workspace @chaos-merge/api"
+    },
+    "devDependencies": {
+      "typescript": "^5.6.3"
+    }
+  }
+  

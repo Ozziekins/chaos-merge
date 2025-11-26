@@ -1,0 +1,6 @@
+.cm-shell {
+  display: flex;
+  height: 100vh;
+  color: var(--cm-text-primary);
+  background: radial-gradient(circle at top, #1b1630 0, #050509 55%);
+}

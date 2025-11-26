@@ -1,0 +1,26 @@
+{
+    "name": "@chaos-merge/api",
+    "version": "1.0.0",
+    "main": "dist/server.js",
+    "scripts": {
+        "dev": "nodemon",
+        "build": "tsc -p tsconfig.json",
+        "start": "node dist/server.js"
+    },
+    "dependencies": {
+        "@chaos-merge/shared-types": "1.0.0",
+        "cors": "^2.8.5",
+        "dotenv": "^16.4.5",
+        "express": "^4.21.0",
+        "multer": "^1.4.5-lts.2"
+    },
+    "devDependencies": {
+        "@types/cors": "^2.8.19",
+        "@types/express": "^4.17.21",
+        "@types/multer": "^1.4.12",
+        "@types/node": "^22.10.0",
+        "nodemon": "^3.1.0",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.6.3"
+    }
+}
